@@ -150,27 +150,6 @@ class Planet {
 
         }
 
-        // Interaction Logic
-        for (Organism organism : organisms) {
-            Organism randomOrganism = getRandomOrganismExcept(organism);
-            if (randomOrganism != null) {
-                organism.interactWith(randomOrganism);
-                System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
-                if (!organism.isAlive()) {
-                    organismsToRemove.add(organism);
-                    System.out.println(organism.getId() + " death in interaction");
-                }
-                if (!randomOrganism.isAlive()) {
-                    organismsToRemove.add(randomOrganism);
-                    System.out.println(randomOrganism.getId() + " death in interaction");
-                }
-            }
-
-        }
-
-        // remove organisms marked for removal
-        organismsToRemove.forEach(this::removeOrganism);
-
         // reprod logic
         int reprodCounter = 0;
         while (reprodCounter < organisms.size() / 2 && organisms.size() < MAX_ORGANISMS) { // at a time, only half can
@@ -186,10 +165,36 @@ class Planet {
                 parentOrg.reproduce(); // now this guy can't reprod again
                 reprodCounter++;
             }
+            
         }
 
         // add organisms marked for addition
         organismsToAdd.forEach(this::addOrganism);
+
+        // Interaction Logic
+        for (Organism organism : organisms) {
+            if (organism.isAlive()) {
+                Organism randomOrganism = getRandomOrganismExcept(organism);
+                if (randomOrganism != null) {
+                    organism.interactWith(randomOrganism);
+                    System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
+                    if (!organism.isAlive()) {
+                        organismsToRemove.add(organism);
+                        System.out.println(organism.getId() + " dies in interaction");
+                    }
+                    if (!randomOrganism.isAlive()) {
+                        organismsToRemove.add(randomOrganism);
+                        System.out.println(randomOrganism.getId() + " dies in interaction");
+                    }
+                }
+            }
+
+        }
+
+        // remove organisms marked for removal
+        organismsToRemove.forEach(this::removeOrganism);
+
+        
 
         // if new changes in the population then set the stability counter to 0.
         if (!organismsToRemove.isEmpty() || !organismsToAdd.isEmpty()) {
@@ -202,9 +207,10 @@ class Planet {
     }
 
     private Organism getRandomOrganismExcept(Organism excludeOrganism) {
-        List<Organism> validOrganisms = new ArrayList<>(organisms);
+        List<Organism> validOrganisms = new ArrayList<>();
 
-        // check if the organism we are selecting for interaction is alive and not the same one as the first guy.
+        // check if the organism we are selecting for interaction is alive and not the
+        // same one as the first guy.
         for (Organism organism : organisms) {
             if (organism.isAlive() && organism != excludeOrganism) {
                 validOrganisms.add(organism);
