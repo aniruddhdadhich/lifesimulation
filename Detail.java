@@ -40,7 +40,7 @@ class Organism {
     }
 
     public boolean isMaxAge() {
-        return age >= 5; // max age for an org can be 5 units - after this org dies
+        return age >= 10; // max age for an org can be 8 units - after this org dies
     }
 
     public int getInteractions(int otherId) {
@@ -99,8 +99,8 @@ class Organism {
 class Planet {
     private List<Organism> organisms;
 
-    private int MAX_ORGANISMS = 30; // maximum organism that are supported on planet for equilibrium, more than that
-                                    // will be killed planet
+    private int MAX_ORGANISMS = 1000; // maximum organism that are supported on planet for equilibrium, more than that
+                                      // will be killed planet
 
     private int previousPopulationSize;
     private int consecutiveStableCount;
@@ -114,13 +114,15 @@ class Planet {
 
     }
 
-    public void getOrganisms(){
-        if(organisms.isEmpty()){
-            System.out.println("humpe to hai hi no");
+    public int getOrganisms() {
+        if (organisms.isEmpty()) {
+            System.out.println("No Organisms are present in planet");
+            return 0;
         }
-        for(int i=0; i<organisms.size(); i++){
-            System.out.print(organisms.get(i).getId()+" ");
+        for (int i = 0; i < organisms.size(); i++) {
+            System.out.print(organisms.get(i).getId() + " ");
         }
+        return organisms.size();
     }
 
     public void addOrganism(Organism organism) { // adding new born orgs to the list
@@ -145,6 +147,7 @@ class Planet {
             for (int i = 0; i < excessOrganisms; i++) {
                 Random random = new Random();
                 Organism orgToKill = organisms.get(random.nextInt(organisms.size()));
+                System.out.println("extra guy " + orgToKill.getId());
                 organismsToRemove.add(orgToKill);
             }
         }
@@ -159,6 +162,9 @@ class Planet {
             }
 
         }
+
+        // remove organisms marked for removal
+        organismsToRemove.forEach(this::removeOrganism);
 
         // Interaction Logic
         for (Organism organism : organisms) {
@@ -185,18 +191,18 @@ class Planet {
 
         // reprod logic
         for (Organism parentOrg : organisms) {
-        if (!parentOrg.hasReproduced()) {
-            double randomChance = Math.random();
-            // Introduce a probability-based reproduction rate
-            if (randomChance < 0.2 && organisms.size() < MAX_ORGANISMS) {
-                double randomPower = Math.random() * 100;
-                Organism newOrganism = new Organism(randomPower);
-                organismsToAdd.add(newOrganism);
-                System.out.println("New Org born " + newOrganism.getId());
-                parentOrg.reproduce(); // now this guy can't reprod again
+            if (!parentOrg.hasReproduced()) {
+                double randomChance = Math.random();
+                // Introduce a probability-based reproduction rate
+                if (randomChance < 0.6 && organisms.size() < MAX_ORGANISMS) {
+                    double randomPower = Math.random() * 100;
+                    Organism newOrganism = new Organism(randomPower);
+                    organismsToAdd.add(newOrganism);
+                    System.out.println("New Org born " + newOrganism.getId());
+                    parentOrg.reproduce(); // now this guy can't reprod again
+                }
             }
         }
-    }
 
         // add organisms marked for addition
         organismsToAdd.forEach(this::addOrganism);
@@ -236,9 +242,14 @@ class Planet {
         } else {
             consecutiveStableCount++;
         }
+        int minHealthyPopulation = MAX_ORGANISMS / 2;
+        int maxHealthyPopulation = (int) (MAX_ORGANISMS * 0.8);
+
+        // is population stable
+        boolean isPopulationStable = organisms.size() >= minHealthyPopulation && organisms.size() <= maxHealthyPopulation;
 
         // Assuming equilibrium is reached if the population is stable for at least 5
-        // consecutive iterations
-        return consecutiveStableCount >= 5;
+        // times
+        return consecutiveStableCount >= 10 && isPopulationStable;
     }
 }

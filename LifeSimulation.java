@@ -11,14 +11,21 @@ public class LifeSimulation {
         }
 
         // Simulation loop
-
+        boolean apocalypseFlag = false;
         while (!planet.isEquilibrium()) {
-
             planet.simulateLife();
-
+            if(planet.getOrganisms()==0){
+                apocalypseFlag  = true;
+                break;
+            }
         }
-
-        System.out.println("Equilibrium reached. Life on the planet is at peace and sustainable.");
-        planet.getOrganisms();
+        if(apocalypseFlag){
+            System.out.println("Apocalypse");
+        }
+        else{
+            System.out.println("Equilibrium reached. Life on the planet is at peace and sustainable.");
+        }
+        
+        
     }
 }
