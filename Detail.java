@@ -40,7 +40,7 @@ class Organism {
     }
 
     public boolean isMaxAge() {
-        return age >= 10; // max age for an org can be 8 units - after this org dies
+        return age >= 50; // max age for an org can be 5 units - after this org dies
     }
 
     public int getInteractions(int otherId) {
@@ -99,18 +99,19 @@ class Organism {
 class Planet {
     private List<Organism> organisms;
 
-    private int MAX_ORGANISMS = 1000; // maximum organism that are supported on planet for equilibrium, more than that
-                                      // will be killed planet
+    private int MAX_ORGANISMS ; // maximum organism that are supported on planet for equilibrium, more than that
+                                      // will be killed planet  250 - 900
 
-    private int previousPopulationSize;
+    // private int previousPopulationSize;
     private int consecutiveStableCount;
     private int cycle;
 
-    public Planet() {
+    public Planet(int pioneers) {
         this.organisms = new ArrayList<>();
-        this.previousPopulationSize = 0;
+        // this.previousPopulationSize = 0;
         this.consecutiveStableCount = 0;
         this.cycle = 0;
+        this.MAX_ORGANISMS = pioneers*10;
 
     }
 
@@ -122,6 +123,7 @@ class Planet {
         for (int i = 0; i < organisms.size(); i++) {
             System.out.print(organisms.get(i).getId() + " ");
         }
+        System.out.println();
         return organisms.size();
     }
 
@@ -169,19 +171,23 @@ class Planet {
         // Interaction Logic
         for (Organism organism : organisms) {
             if (organism.isAlive()) {
-                Organism randomOrganism = getRandomOrganismExcept(organism);
-                if (randomOrganism != null) {
-                    organism.interactWith(randomOrganism);
-                    System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
-                    if (!organism.isAlive()) {
-                        organismsToRemove.add(organism);
-                        System.out.println(organism.getId() + " dies in interaction");
-                    }
-                    if (!randomOrganism.isAlive()) {
-                        organismsToRemove.add(randomOrganism);
-                        System.out.println(randomOrganism.getId() + " dies in interaction");
+                double interactionProb = Math.random();
+                if (interactionProb < 0.05) {
+                    Organism randomOrganism = getRandomOrganismExcept(organism);
+                    if (randomOrganism != null) {
+                        organism.interactWith(randomOrganism);
+                        System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
+                        if (!organism.isAlive()) {
+                            organismsToRemove.add(organism);
+                            System.out.println(organism.getId() + " dies in interaction");
+                        }
+                        if (!randomOrganism.isAlive()) {
+                            organismsToRemove.add(randomOrganism);
+                            System.out.println(randomOrganism.getId() + " dies in interaction");
+                        }
                     }
                 }
+
             }
 
         }
@@ -192,9 +198,9 @@ class Planet {
         // reprod logic
         for (Organism parentOrg : organisms) {
             if (!parentOrg.hasReproduced()) {
-                double randomChance = Math.random();
+                double reproductionProb = Math.random();
                 // Introduce a probability-based reproduction rate
-                if (randomChance < 0.6 && organisms.size() < MAX_ORGANISMS) {
+                if (reproductionProb < 0.6 && organisms.size() < MAX_ORGANISMS) {
                     double randomPower = Math.random() * 100;
                     Organism newOrganism = new Organism(randomPower);
                     organismsToAdd.add(newOrganism);
@@ -236,20 +242,19 @@ class Planet {
     }
 
     public boolean isEquilibrium() {
-        if (organisms.size() != previousPopulationSize) {
-            consecutiveStableCount = 0; // Reset the counter if the population changes
-            previousPopulationSize = organisms.size();
+        int minHealthyPopulation = MAX_ORGANISMS / 4;
+        int maxHealthyPopulation = (int) (MAX_ORGANISMS * 0.9);
+        // is population stable
+        boolean isPopulationHealthy = (organisms.size() >= minHealthyPopulation)
+                && (organisms.size() <= maxHealthyPopulation);
+        if (!isPopulationHealthy) {
+            consecutiveStableCount = 0; // Reset the counter if the population not stable
         } else {
             consecutiveStableCount++;
         }
-        int minHealthyPopulation = MAX_ORGANISMS / 2;
-        int maxHealthyPopulation = (int) (MAX_ORGANISMS * 0.8);
-
-        // is population stable
-        boolean isPopulationStable = organisms.size() >= minHealthyPopulation && organisms.size() <= maxHealthyPopulation;
 
         // Assuming equilibrium is reached if the population is stable for at least 5
         // times
-        return consecutiveStableCount >= 10 && isPopulationStable;
+        return consecutiveStableCount >= 3;
     }
 }

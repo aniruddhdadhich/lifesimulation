@@ -1,10 +1,11 @@
 public class LifeSimulation {
     public static void main(String[] args) {
 
-        Planet planet = new Planet();
+        int pioneers = 5;  // 50 => 12.5 to 45
+        Planet planet = new Planet(pioneers);
 
         // Assumption: Populate the planet with 5 organisms initially
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < pioneers; i++) {
             double randomPower = Math.random() * 100;
             Organism organism = new Organism(randomPower);
             planet.addOrganism(organism);
@@ -20,7 +21,7 @@ public class LifeSimulation {
             }
         }
         if(apocalypseFlag){
-            System.out.println("Apocalypse");
+            System.out.println("Mass Extinction Event");
         }
         else{
             System.out.println("Equilibrium reached. Life on the planet is at peace and sustainable.");
