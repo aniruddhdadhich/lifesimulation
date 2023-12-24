@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +114,15 @@ class Planet {
 
     }
 
+    public void getOrganisms(){
+        if(organisms.isEmpty()){
+            System.out.println("humpe to hai hi no");
+        }
+        for(int i=0; i<organisms.size(); i++){
+            System.out.print(organisms.get(i).getId()+" ");
+        }
+    }
+
     public void addOrganism(Organism organism) { // adding new born orgs to the list
         organisms.add(organism);
     }
@@ -150,27 +160,6 @@ class Planet {
 
         }
 
-        // reprod logic
-        int reprodCounter = 0;
-        while (reprodCounter < organisms.size() / 2 && organisms.size() < MAX_ORGANISMS) { // at a time, only half can
-                                                                                           // reprod
-            Random random = new Random();
-            Organism parentOrg = organisms.get(random.nextInt(organisms.size()));
-
-            if (!parentOrg.hasReproduced()) {
-                double randomPower = Math.random() * 100;
-                Organism newOrganism = new Organism(randomPower); // gets random power
-                organismsToAdd.add(newOrganism);
-                System.out.println("New Org born " + newOrganism.getId());
-                parentOrg.reproduce(); // now this guy can't reprod again
-                reprodCounter++;
-            }
-            
-        }
-
-        // add organisms marked for addition
-        organismsToAdd.forEach(this::addOrganism);
-
         // Interaction Logic
         for (Organism organism : organisms) {
             if (organism.isAlive()) {
@@ -194,7 +183,23 @@ class Planet {
         // remove organisms marked for removal
         organismsToRemove.forEach(this::removeOrganism);
 
-        
+        // reprod logic
+        for (Organism parentOrg : organisms) {
+        if (!parentOrg.hasReproduced()) {
+            double randomChance = Math.random();
+            // Introduce a probability-based reproduction rate
+            if (randomChance < 0.2 && organisms.size() < MAX_ORGANISMS) {
+                double randomPower = Math.random() * 100;
+                Organism newOrganism = new Organism(randomPower);
+                organismsToAdd.add(newOrganism);
+                System.out.println("New Org born " + newOrganism.getId());
+                parentOrg.reproduce(); // now this guy can't reprod again
+            }
+        }
+    }
+
+        // add organisms marked for addition
+        organismsToAdd.forEach(this::addOrganism);
 
         // if new changes in the population then set the stability counter to 0.
         if (!organismsToRemove.isEmpty() || !organismsToAdd.isEmpty()) {
