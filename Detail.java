@@ -126,7 +126,7 @@ class Planet {
         List<Organism> organismsToRemove = new ArrayList<>();
         List<Organism> organismsToAdd = new ArrayList<>();
 
-        System.out.println("cycle no. = "+ cycle);
+        System.out.println("cycle no. = " + cycle);
 
         // Planet population limit logic
         if (organisms.size() >= MAX_ORGANISMS) {
@@ -156,13 +156,14 @@ class Planet {
             if (randomOrganism != null) {
                 organism.interactWith(randomOrganism);
                 System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
-                if (!organism.isAlive())
+                if (!organism.isAlive()) {
                     organismsToRemove.add(organism);
-                System.out.println(organism.getId() + " death in interaction");
-                if (!randomOrganism.isAlive())
+                    System.out.println(organism.getId() + " death in interaction");
+                }
+                if (!randomOrganism.isAlive()) {
                     organismsToRemove.add(randomOrganism);
-                System.out.println(randomOrganism.getId() + " death in interaction");
-
+                    System.out.println(randomOrganism.getId() + " death in interaction");
+                }
             }
 
         }
@@ -172,8 +173,8 @@ class Planet {
 
         // reprod logic
         int reprodCounter = 0;
-        while (reprodCounter <= 5 && organisms.size() < MAX_ORGANISMS) { // in one occurrence, only 5 random organisms
-                                                                         // can reproduce
+        while (reprodCounter < organisms.size() / 2 && organisms.size() < MAX_ORGANISMS) { // at a time, only half can
+                                                                                           // reprod
             Random random = new Random();
             Organism parentOrg = organisms.get(random.nextInt(organisms.size()));
 
@@ -197,13 +198,18 @@ class Planet {
 
         // increase cycle
         cycle++;
-        
 
     }
 
     private Organism getRandomOrganismExcept(Organism excludeOrganism) {
         List<Organism> validOrganisms = new ArrayList<>(organisms);
-        validOrganisms.remove(excludeOrganism);
+
+        // check if the organism we are selecting for interaction is alive and not the same one as the first guy.
+        for (Organism organism : organisms) {
+            if (organism.isAlive() && organism != excludeOrganism) {
+                validOrganisms.add(organism);
+            }
+        }
 
         if (validOrganisms.isEmpty()) {
             return null;

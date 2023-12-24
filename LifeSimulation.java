@@ -4,7 +4,7 @@ public class LifeSimulation {
         Planet planet = new Planet();
 
         // Assumption: Populate the planet with 5 organisms initially
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 3; i++) {
             double randomPower = Math.random() * 100;
             Organism organism = new Organism(randomPower);
             planet.addOrganism(organism);
