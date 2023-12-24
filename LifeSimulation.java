@@ -1,7 +1,7 @@
 public class LifeSimulation {
     public static void main(String[] args) {
 
-        int pioneers = 5;  // 50 => 12.5 to 45
+        int pioneers = 100;  // 600 - 900
         Planet planet = new Planet(pioneers);
 
         // Assumption: Populate the planet with 5 organisms initially
