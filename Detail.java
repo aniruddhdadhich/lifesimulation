@@ -20,7 +20,6 @@ class Organism {
         this.alive = true;
         this.age = 0;
         this.hasReproduced = false;
-
     }
 
     public int getId() {
@@ -40,7 +39,7 @@ class Organism {
     }
 
     public boolean isMaxAge() {
-        return age >= 3;
+        return age >= 5; // max age for an org can be 5 units - after this org dies
     }
 
     public int getInteractions(int otherId) {
@@ -58,8 +57,6 @@ class Organism {
         } else {
             interactions.put(otherId, 1);
         }
-        // interactions.put(otherId, interactions.getOrDefault(0,
-        // interactions.get(otherId)) + 1);
     }
 
     public boolean isAlive() {
@@ -68,6 +65,7 @@ class Organism {
 
     public void death() {
         alive = false;
+
     }
 
     public boolean hasReproduced() {
@@ -82,11 +80,11 @@ class Organism {
 
     public void interactWith(Organism other) {
         // count of interaction from both ends
-        this.setInteractions(other.getId());
-        other.setInteractions(this.getId());
+        this.setInteractions(other.getId()); // 1 --> 3
+        other.setInteractions(this.getId()); // 3 --> 1
 
         // second interation
-        if (this.getInteractions(other.id) > 1) {
+        if (this.getInteractions(other.id) > 1) { // if second interaction then use elimination logic
             if (this.power > other.power) {
                 other.death();
             } else {
@@ -99,98 +97,131 @@ class Organism {
 
 class Planet {
     private List<Organism> organisms;
-    // private int ageOfPlanet;
-    private int firstGen;
 
-    public Planet(int size) {
+    private int MAX_ORGANISMS = 30; // maximum organism that are supported on planet for equilibrium, more than that
+                                    // will be killed planet
+
+    private int previousPopulationSize;
+    private int consecutiveStableCount;
+    private int cycle;
+
+    public Planet() {
         this.organisms = new ArrayList<>();
-        this.firstGen = size;
+        this.previousPopulationSize = 0;
+        this.consecutiveStableCount = 0;
+        this.cycle = 0;
+
     }
 
-    public void addOrganism(Organism organism) {
+    public void addOrganism(Organism organism) { // adding new born orgs to the list
         organisms.add(organism);
+    }
+
+    public void removeOrganism(Organism organism) { // removing dead ones from the list
+        organisms.remove(organism);
     }
 
     public void simulateLife() {
 
-        // pandemic logic
-        if (organisms.size() >= 20) {
-            int counter = 0;
-            // these more than 20 should be killed in pandemic
-            while (counter < organisms.size() - 20) {
+        List<Organism> organismsToRemove = new ArrayList<>();
+        List<Organism> organismsToAdd = new ArrayList<>();
+
+        System.out.println("cycle no. = "+ cycle);
+
+        // Planet population limit logic
+        if (organisms.size() >= MAX_ORGANISMS) {
+            int excessOrganisms = organisms.size() - MAX_ORGANISMS;
+            // these more than Max must be killed in pandemic
+            for (int i = 0; i < excessOrganisms; i++) {
                 Random random = new Random();
                 Organism orgToKill = organisms.get(random.nextInt(organisms.size()));
-                if (orgToKill.isAlive()) {
-                    counter++;
-                    organisms.remove(orgToKill);
-                }
+                organismsToRemove.add(orgToKill);
             }
         }
 
-        // is eventual death
+        // Eventual death logic at max Age
         for (Organism organism : organisms) {
-            System.out.println("age of " + organism.getId() + " " + organism.getAge());
-            organism.setAge();
-
+            organism.setAge(); // in each occurrence of simluteLife each org's age++
             if (organism.isMaxAge()) {
-                System.out.println("death of " + organism.getAge());
                 organism.death();
+                organismsToRemove.add(organism);
+                System.out.println("Death - " + organism.getId() + " at age " + organism.getAge());
             }
 
         }
 
-        // interaction logic
+        // Interaction Logic
         for (Organism organism : organisms) {
-            if (organism.isAlive()) {
-                Organism randomOrganism = getRandomOrganismExcept(organism);
-                if (randomOrganism != null) {
-                    organism.interactWith(randomOrganism);
-                }
+            Organism randomOrganism = getRandomOrganismExcept(organism);
+            if (randomOrganism != null) {
+                organism.interactWith(randomOrganism);
+                System.out.println(organism.getId() + " interact with " + randomOrganism.getId());
+                if (!organism.isAlive())
+                    organismsToRemove.add(organism);
+                System.out.println(organism.getId() + " death in interaction");
+                if (!randomOrganism.isAlive())
+                    organismsToRemove.add(randomOrganism);
+                System.out.println(randomOrganism.getId() + " death in interaction");
+
             }
 
         }
+
+        // remove organisms marked for removal
+        organismsToRemove.forEach(this::removeOrganism);
 
         // reprod logic
         int reprodCounter = 0;
-        while (reprodCounter <= 4) {
+        while (reprodCounter <= 5 && organisms.size() < MAX_ORGANISMS) { // in one occurrence, only 5 random organisms
+                                                                         // can reproduce
             Random random = new Random();
             Organism parentOrg = organisms.get(random.nextInt(organisms.size()));
 
-            if (parentOrg.isAlive() && !parentOrg.hasReproduced()) {
-                Organism newOrganism = new Organism(parentOrg.getPower());
-                organisms.add(newOrganism);
-                parentOrg.reproduce();
+            if (!parentOrg.hasReproduced()) {
+                double randomPower = Math.random() * 100;
+                Organism newOrganism = new Organism(randomPower); // gets random power
+                organismsToAdd.add(newOrganism);
+                System.out.println("New Org born " + newOrganism.getId());
+                parentOrg.reproduce(); // now this guy can't reprod again
                 reprodCounter++;
             }
         }
 
+        // add organisms marked for addition
+        organismsToAdd.forEach(this::addOrganism);
+
+        // if new changes in the population then set the stability counter to 0.
+        if (!organismsToRemove.isEmpty() || !organismsToAdd.isEmpty()) {
+            consecutiveStableCount = 0;
+        }
+
+        // increase cycle
+        cycle++;
+        
+
     }
 
     private Organism getRandomOrganismExcept(Organism excludeOrganism) {
-        List<Organism> validOrganisms = new ArrayList<>();
-        for (Organism org : organisms) {
-            if (org.isAlive()) {
-                validOrganisms.add(org);
-            }
-        }
-
+        List<Organism> validOrganisms = new ArrayList<>(organisms);
         validOrganisms.remove(excludeOrganism);
 
         if (validOrganisms.isEmpty()) {
             return null;
         }
-
         Random random = new Random();
         return validOrganisms.get(random.nextInt(validOrganisms.size()));
     }
 
     public boolean isEquilibrium() {
-        int livingOrganisms = 0;
-        for (Organism organism : organisms) {
-            if (organism.isAlive()) {
-                livingOrganisms++;
-            }
+        if (organisms.size() != previousPopulationSize) {
+            consecutiveStableCount = 0; // Reset the counter if the population changes
+            previousPopulationSize = organisms.size();
+        } else {
+            consecutiveStableCount++;
         }
-        return livingOrganisms == organisms.size() / 2;
+
+        // Assuming equilibrium is reached if the population is stable for at least 5
+        // consecutive iterations
+        return consecutiveStableCount >= 5;
     }
 }
