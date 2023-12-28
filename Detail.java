@@ -100,7 +100,7 @@ class Planet {
     private List<Organism> organisms;
     private int MAX_ORGANISMS;
     private int consecutiveStableCount;
-    public int cycle;
+    public int iteration;
     public double REPRODUCTION_RATE;
     public double DEATH_RATE;
     public double INTERACTION_RATE;
@@ -108,7 +108,7 @@ class Planet {
     public Planet(int pioneers) {
         this.organisms = new ArrayList<>();
         this.consecutiveStableCount = 0;
-        this.cycle = 0;
+        this.iteration = 0;
         this.MAX_ORGANISMS = pioneers * 1000;
         this.REPRODUCTION_RATE = 0.4;
         this.DEATH_RATE = 0.8;
@@ -136,7 +136,7 @@ class Planet {
         List<Organism> organismsToRemove = new ArrayList<>();
         List<Organism> organismsToAdd = new ArrayList<>();
 
-        System.out.println("cycle no. = " + cycle);
+        System.out.println("iteration no. = " + iteration);
         System.out.println("Population count :" + organisms.size());
 
         // Population Limit: If population grows more than the limit - reset to 70% of
@@ -219,8 +219,8 @@ class Planet {
         // add organisms marked for addition
         organismsToAdd.forEach(this::addOrganism);
 
-        // increase cycle
-        cycle++;
+        // increase iteration
+        iteration++;
 
     }
 
@@ -238,8 +238,8 @@ class Planet {
     public boolean isEquilibrium() {
         int minHealthyPopulation = (int) (MAX_ORGANISMS * 0.6);
 
-        // Have the planet atleast existed for 50 cycles
-        if (cycle < 50) {
+        // Have the planet atleast existed for 50 iterations
+        if (iteration < 50) {
             return false;
         } else {
             // if yes, then is population healthy & stable
@@ -251,9 +251,8 @@ class Planet {
                 consecutiveStableCount++;
             }
             // Assuming equilibrium is reached if the population is stable for at least 10
-            // cycles
+            // iterations
             return consecutiveStableCount >= 10;
         }
-
     }
 }
