@@ -252,7 +252,7 @@ class Planet {
             }
             // Assuming equilibrium is reached if the population is stable for at least 10
             // iterations
-            return consecutiveStableCount >= 10;
+            return consecutiveStableCount >= 100;
         }
     }
 }
