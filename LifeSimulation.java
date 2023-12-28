@@ -15,9 +15,6 @@ public class LifeSimulation {
         boolean apocalypseFlag = false;
         while (!planet.isEquilibrium()) {
             planet.simulateLife();
-            // if(planet.cycle>40){
-            //     break;
-            // }
             if(planet.getOrganisms()==0){
                 apocalypseFlag  = true;
                 break;

@@ -101,22 +101,21 @@ class Planet {
     private int MAX_ORGANISMS;
     private int consecutiveStableCount;
     public int cycle;
-    public double reprodRate;
-    public double deathRate;
-    public double interactionRate;
+    public double REPRODUCTION_RATE;
+    public double DEATH_RATE;
+    public double INTERACTION_RATE;
 
     public Planet(int pioneers) {
         this.organisms = new ArrayList<>();
         this.consecutiveStableCount = 0;
         this.cycle = 0;
         this.MAX_ORGANISMS = pioneers * 1000;
-        this.reprodRate = 0.5;
-        this.deathRate = 0.8;
-        this.interactionRate = 0.8;
-
+        this.REPRODUCTION_RATE = 0.4;
+        this.DEATH_RATE = 0.8;
+        this.INTERACTION_RATE = 0.8;
     }
 
-    public int getOrganisms() {
+    public int getOrganisms() { // Returns no. of alive organisms on the planet
         if (organisms.isEmpty()) {
             System.out.println("No Organisms are present in planet");
             return 0;
@@ -125,71 +124,53 @@ class Planet {
         return organisms.size();
     }
 
-    public void addOrganism(Organism organism) { // adding new born orgs to the list
+    public void addOrganism(Organism organism) {
         organisms.add(organism);
     }
 
-    public void removeOrganism(Organism organism) { // removing dead ones from the list
+    public void removeOrganism(Organism organism) {
         organisms.remove(organism);
     }
 
     public void simulateLife() {
-
         List<Organism> organismsToRemove = new ArrayList<>();
         List<Organism> organismsToAdd = new ArrayList<>();
 
         System.out.println("cycle no. = " + cycle);
         System.out.println("Population count :" + organisms.size());
 
-        // // dynamic rates?
-        // if (organisms.size() < 0.4 * MAX_ORGANISMS) {
-        // reprodRate = 0.9;
-        // deathRate = 0.2;
-        // interactionRate = 0.1;
-        // } else if (organisms.size() >= 0.4 * MAX_ORGANISMS && organisms.size() < 0.6
-        // * MAX_ORGANISMS) {
-        // reprodRate = 0.7;
-        // deathRate = 0.4;
-        // interactionRate = 0.4;
-        // }
-        // // else{
-        // // reprodRate = 0.2;
-        // // deathRate = 1;
-        // // interactionRate = 1;
-        // // }
-
-        // Planet population limit logic => A Pandemic situation
-        if (organisms.size() >= 0.95 * MAX_ORGANISMS) {
-            System.out.println("Tipped the max");
+        // Population Limit: If population grows more than the limit - reset to 70% of
+        // Max.
+        if (organisms.size() >= MAX_ORGANISMS) {
             int excessOrganisms = organisms.size() - MAX_ORGANISMS;
             double populationToWipe = excessOrganisms + 0.3 * MAX_ORGANISMS;
-            // these more than Max must be killed in pandemic
+
+            // randomly eliminate these many organisms
             while (organismsToRemove.size() < populationToWipe) {
                 Random random = new Random();
                 Organism orgToKill = organisms.get(random.nextInt(organisms.size()));
-                // System.out.println("extra guy " + orgToKill.getId());
                 organismsToRemove.add(orgToKill);
             }
-            reprodRate = 0.2;
-            deathRate = 1;
-            interactionRate = 1;
+
+            // decrease reproduction rate + increase elimination rates
+            REPRODUCTION_RATE = 0.25;
+            DEATH_RATE = 1;
+            INTERACTION_RATE = 1;
 
         }
 
-        // Eventual death logic at max Age
+        // Eventual Death - if more than max age then 80% chances that organism will
+        // die.
         for (Organism organism : organisms) {
-            organism.setAge(); // in each occurrence of simluteLife each org's age++
+            organism.setAge(); 
             if (organism.isMaxAge()) {
                 double deathProbability = Math.random();
-                if (deathProbability < deathRate) {
+                if (deathProbability < DEATH_RATE) {
                     organism.death();
                     organismsToRemove.add(organism);
-                    // System.out.println("Death - " + organism.getId() + " at age " +
-                    // organism.getAge());
+                    // System.out.println("Death - " + organism.getId() )
                 }
-
             }
-
         }
 
         // remove organisms marked for removal
@@ -197,27 +178,23 @@ class Planet {
 
         // Interaction Logic
         for (Organism organism : organisms) {
-            if (organism.isAlive()) {
-                double interactionProb = Math.random();
-                if (interactionProb < interactionRate) {
-                    Organism randomOrganism = getRandomOrganismExcept(organism);
-                    if (randomOrganism != null) {
-                        organism.interactWith(randomOrganism);
-                        // System.out.println(organism.getId() + " interact with " +
-                        // randomOrganism.getId());
-                        if (!organism.isAlive()) {
-                            organismsToRemove.add(organism);
-                            // System.out.println(organism.getId() + " dies in interaction");
-                        }
-                        if (!randomOrganism.isAlive()) {
-                            organismsToRemove.add(randomOrganism);
-                            // System.out.println(randomOrganism.getId() + " dies in interaction");
-                        }
+            double interactionProb = Math.random();
+            if (interactionProb < INTERACTION_RATE) {
+                Organism randomOrganism = getRandomOrganismExcept(organism);
+                if (randomOrganism != null) {
+                    organism.interactWith(randomOrganism);
+                    // System.out.println(organism.getId() + " interact with " +
+                    // randomOrganism.getId());
+                    if (!organism.isAlive()) {
+                        organismsToRemove.add(organism);
+                        // System.out.println(organism.getId() + " dies in interaction");
+                    }
+                    if (!randomOrganism.isAlive()) {
+                        organismsToRemove.add(randomOrganism);
+                        // System.out.println(randomOrganism.getId() + " dies in interaction");
                     }
                 }
-
             }
-
         }
 
         // remove organisms marked for removal
@@ -227,8 +204,8 @@ class Planet {
         for (Organism parentOrg : organisms) {
             if (parentOrg.canReproduce()) {
                 double reproductionProb = Math.random();
-                // if less then 0.3 => no reproduction
-                if (reproductionProb < reprodRate) {
+                // 40% chances to reproduce
+                if (reproductionProb < REPRODUCTION_RATE) {
                     double randomPower = Math.random() * 100;
                     Organism newOrganism = new Organism(randomPower);
                     organismsToAdd.add(newOrganism);
@@ -248,15 +225,8 @@ class Planet {
     }
 
     private Organism getRandomOrganismExcept(Organism excludeOrganism) {
-        List<Organism> validOrganisms = new ArrayList<>();
-
-        // check if the organism we are selecting for interaction is alive and not the
-        // same one as the first guy.
-        for (Organism organism : organisms) {
-            if (organism.isAlive() && organism != excludeOrganism) {
-                validOrganisms.add(organism);
-            }
-        }
+        List<Organism> validOrganisms = new ArrayList<>(organisms);
+        validOrganisms.remove(excludeOrganism);
 
         if (validOrganisms.isEmpty()) {
             return null;
@@ -272,7 +242,6 @@ class Planet {
         if (cycle < 50) {
             return false;
         } else {
-
             // if yes, then is population healthy & stable
             boolean isPopulationHealthy = (organisms.size() >= minHealthyPopulation);
             if (!isPopulationHealthy) {
@@ -281,7 +250,8 @@ class Planet {
                 System.out.println("Healthy Population " + " STABLE COUNT ---> " + (consecutiveStableCount + 1));
                 consecutiveStableCount++;
             }
-            // Assuming equilibrium is reached if the population is stable for at least 10 cycles
+            // Assuming equilibrium is reached if the population is stable for at least 10
+            // cycles
             return consecutiveStableCount >= 10;
         }
 
